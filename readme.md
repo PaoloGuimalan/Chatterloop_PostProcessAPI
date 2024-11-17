@@ -13,3 +13,4 @@
 # EXTRA SETUP
 
 - Generate requirements.txt by (pip freeze > requirements.txt)
+- Install packages using requirements.txt (pip install -r requirements.txt)
