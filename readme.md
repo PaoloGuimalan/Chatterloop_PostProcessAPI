@@ -9,3 +9,7 @@
 - Install fastapi (pip install "fastapi[standard]")
 - Create a folder for cloning repository (./app)
 - Clone repo inside ./app
+
+# EXTRA SETUP
+
+- Generate requirements.txt by (pip freeze > requirements.txt)
