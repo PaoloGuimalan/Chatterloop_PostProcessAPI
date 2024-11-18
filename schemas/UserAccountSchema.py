@@ -1,4 +1,7 @@
 def UserAccount(user: dict) -> dict:
+    if user == None:
+        return {}
+
     return {
         "_id": str(user.get("_id")),
         "userID": user.get("userID"),
