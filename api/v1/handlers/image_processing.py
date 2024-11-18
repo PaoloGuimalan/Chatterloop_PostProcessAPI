@@ -16,7 +16,6 @@ async def generate_tag(request: Request):
     referenceType = payload["referenceType"]
 
     image_data = await ImageProcessingService.fetch_image_src(referenceID, referenceType)
+    pre_prediction = await ImageProcessingService.handle_images_pre_prediction(image_data)
 
-    print(userID)
-
-    return image_data
+    return pre_prediction
