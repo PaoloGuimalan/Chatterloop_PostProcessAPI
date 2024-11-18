@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from services.v1.image_processing.ImageProcessingService import ImageProcessingService
+from api.v1.middlewares.jwtchecker import JWTChecker
 
 image_processing_router = APIRouter()
 
@@ -7,7 +8,7 @@ image_processing_router = APIRouter()
 def index():
     return "Image Processing Routes"
 
-@image_processing_router.post("/generate_tag")
+@image_processing_router.post("/generate_tag", dependencies=[Depends(JWTChecker.check_user_token)])
 async def generate_tag(request: Request):
     payload = await request.json()
     referenceID = payload["referenceID"]
