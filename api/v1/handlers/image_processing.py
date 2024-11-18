@@ -10,10 +10,13 @@ def index():
 
 @image_processing_router.post("/generate_tag", dependencies=[Depends(JWTChecker.check_user_token)])
 async def generate_tag(request: Request):
+    userID = request.state.userID;
     payload = await request.json()
     referenceID = payload["referenceID"]
     referenceType = payload["referenceType"]
 
     image_data = await ImageProcessingService.fetch_image_src(referenceID, referenceType)
+
+    print(userID)
 
     return image_data
