@@ -14,7 +14,8 @@ def UserPosts(post: dict) -> dict:
                     "referenceID": reference.get("referenceID"),
                     "reference": reference.get("reference"),
                     "caption": reference.get("caption"),
-                    "referenceMediaType": reference.get("referenceMediaType")
+                    "referenceMediaType": reference.get("referenceMediaType"),
+                    "referenceTag": [{ "tag": referenceTag.get("tag"), "confidence": referenceTag.get("confidence") } for referenceTag in reference.get("referenceTag", [])]
                 } for reference in post.get("content", {}).get("references", [])
             ],
             "data": post.get("content", {}).get("data")

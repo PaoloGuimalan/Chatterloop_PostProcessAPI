@@ -10,6 +10,7 @@ def UserMessage(message: dict) -> dict:
         "receivers": message.get("receivers", []),
         "seeners": message.get("seeners", []),
         "content": message.get("content"),
+        "referenceTag": message.get("referenceTag", []),
         "messageDate": {
             "date": message.get("messageDate", {}).get("date"),
             "time": message.get("messageDate", {}).get("time")

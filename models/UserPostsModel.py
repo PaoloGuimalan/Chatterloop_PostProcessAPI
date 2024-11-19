@@ -1,12 +1,17 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
+class ReferenceTagSchema(BaseModel):
+    tag: Any
+    confidence: Any
+
 class ReferenceSchema(BaseModel):
     name: Any  # Replace `Any` with `str` or another specific type if possible
     referenceID: Any
     reference: Any
     caption: Any
     referenceMediaType: Any
+    referenceTag: Optional[List[ReferenceTagSchema]] = []
 
 class ContentSchema(BaseModel):
     isShared: Optional[bool] = False

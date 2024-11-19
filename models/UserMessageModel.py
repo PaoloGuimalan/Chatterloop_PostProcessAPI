@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from typing import List, Optional, Any
 
+class ReferenceTagSchema(BaseModel):
+    tag: Any
+    confidence: Any
+
 class MessageDate(BaseModel):
     date: Any
     time: Any
@@ -13,6 +17,7 @@ class MessageModel(BaseModel):
     receivers: List[Any]
     seeners: List[Any]
     content: Any
+    referenceTag: Optional[List[ReferenceTagSchema]] = []
     messageDate: MessageDate
     isReply: bool
     replyingTo: Optional[Any] = None

@@ -21,13 +21,13 @@ class Prediction:
         if self.model == None:
             await self.load_model()
 
-        result = decode_predictions(self.model.predict(image_data), 2)[0]
+        result = decode_predictions(self.model.predict(image_data), 10)[0]
         
         response = []
         for i, res in enumerate(result):
             resp = {}
-            resp["class"] = res[1]
-            resp["confidence"] = f"{res[2]*100:0.2f} %"
+            resp["tag"] = res[1]
+            resp["confidence"] = f"{res[2]*100:0.2f}"
 
             response.append(resp)
 
@@ -107,8 +107,36 @@ class ImageProcessingService:
                     predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": result })
                     # print(result)
 
-            reference_data["predictions"] = predictions_result
+            # reference_data["predictions"] = predictions_result
 
-            return reference_data
+            reference_data_w_tags = [
+                {
+                    **({
+                        "name": reference.get("name"),
+                        "referenceID": reference.get("referenceID"),
+                        "reference": reference.get("reference"),
+                        "caption": reference.get("caption"),
+                        "referenceMediaType": reference.get("image"),
+                        "referenceTag": next(
+                            (x.get("prediction") for x in predictions_result if x.get("referenceID") == reference.get("referenceID")),
+                            None
+                        )
+                    } if reference_data["referenceType"] == "post" else {
+                        "reference": reference,
+                        "referenceTag": next(
+                            (x.get("prediction") for x in predictions_result if x.get("referenceID") == reference_data["referenceID"]),
+                            None
+                        )
+                    })
+                } for reference in reference_data["result"]
+            ]
+
+            final_reference_data = {
+                "referenceID": reference_data["referenceID"],
+                "referenceType": reference_data["referenceType"],
+                "result": reference_data_w_tags
+            }
+
+            return final_reference_data
 
         return reference_data
