@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from connections.mongo import MongoConnection
 from schemas.UserPostSchema import UserPosts
 from schemas.UserMessageSchema import UserMessage
@@ -74,7 +75,7 @@ class ImageProcessingService:
             db_message = MongoConnection.execute("messages")
             message_data = UserMessage(db_message.find_one({ "messageID": referenceID }))
 
-            if "content" in message_data:
+            if "content" in message_data and message_data["messageType"] == "image":
                 return { "referenceID": referenceID, "referenceType": referenceType, "result": [message_data["content"]] } 
             
             return { "referenceID": referenceID, "referenceType": referenceType, "result": [] }
@@ -93,19 +94,22 @@ class ImageProcessingService:
             predictions_result = list()
 
             for img in image_list:
-                if reference_data["referenceType"] == "post":
-                    loaded_img = await read_image_src(img["reference"])
-                    processed_image = await preprocess_image(loaded_img)
-                    result = await prediction.predict(processed_image)
-                    predictions_result.append({ "referenceID": img["referenceID"], "prediction": result })
-                    # print(result)
-                
-                if reference_data["referenceType"] == "message":
-                    loaded_img = await read_image_src(img)
-                    processed_image = await preprocess_image(loaded_img)
-                    result = await prediction.predict(processed_image)
-                    predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": result })
-                    # print(result)
+                try:
+                    if reference_data["referenceType"] == "post":
+                        loaded_img = await read_image_src(img["reference"])
+                        processed_image = await preprocess_image(loaded_img)
+                        result = await prediction.predict(processed_image)
+                        predictions_result.append({ "referenceID": img["referenceID"], "prediction": result })
+                        # print(result)
+                    
+                    if reference_data["referenceType"] == "message":
+                        loaded_img = await read_image_src(img)
+                        processed_image = await preprocess_image(loaded_img)
+                        result = await prediction.predict(processed_image)
+                        predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": result })
+                        # print(result)
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=str(e))
 
             # reference_data["predictions"] = predictions_result
 
