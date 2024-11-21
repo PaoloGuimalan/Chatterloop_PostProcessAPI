@@ -7,8 +7,11 @@ from io import BytesIO
 import requests # type: ignore
 import numpy as np # type: ignore
 import tensorflow as tf # type: ignore
-from tensorflow.keras.applications.imagenet_utils import decode_predictions # type: ignore
+from tensorflow.keras.applications.efficientnet import decode_predictions # type: ignore
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense # type: ignore
+from ultralytics import YOLO # type: ignore
+import json
+import re
 
 class Prediction:
 
@@ -16,10 +19,10 @@ class Prediction:
         self.model = None
 
     async def load_model(self):
-        input_shape = (400, 400, 3)
+        input_shape = (800, 800, 3)
         # self.model = tf.keras.applications.MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
 
-        base_model = tf.keras.applications.MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
+        base_model = tf.keras.applications.EfficientNetB0(input_shape=input_shape, include_top=False, weights='imagenet')
         
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
@@ -53,7 +56,7 @@ class InputReader:
         return None
     
     async def image_preprocess(image: Image.Image):
-        input_shape = (400, 400)
+        input_shape = (800, 800)
 
         if image.mode != 'RGB':
             image = image.convert('RGB')
@@ -64,6 +67,37 @@ class InputReader:
         image = np.expand_dims(image, 0)
 
         return image
+    
+    async def yolo_process(image: Image.Image):
+        model = YOLO("yolov5s.pt")  # "yolov5s" is a lightweight model
+
+        # Run inference
+        results = model(image)
+        # results.show()
+        if len(results[0]) > 0:
+            probs = results[0].probs 
+            cls = results[0].boxes.cls
+            names = results[0].names
+
+            cls = cls.cpu().numpy() 
+
+            detected_items = {}
+
+            for i in range(len(cls)):
+                class_idx = int(cls[i])
+                class_name = names[class_idx]
+                confidence = results[0].boxes.conf[i].cpu().numpy()
+
+                if class_name not in detected_items:
+                    detected_items[class_name] = confidence
+                else:
+                    if confidence > detected_items[class_name]:
+                        detected_items[class_name] = confidence
+
+            final_detected_items = [{"tag": tag, "confidence": f"{conf:.2f}"} for tag, conf in detected_items.items()]
+
+            return final_detected_items
+        return []
 
 class ImageProcessingService:
 
@@ -100,6 +134,7 @@ class ImageProcessingService:
 
             read_image_src = InputReader.read_image_src
             preprocess_image = InputReader.image_preprocess
+            yolo_process = InputReader.yolo_process
 
             prediction = Prediction()
 
@@ -109,16 +144,18 @@ class ImageProcessingService:
                 try:
                     if reference_data["referenceType"] == "post":
                         loaded_img = await read_image_src(img["reference"])
-                        processed_image = await preprocess_image(loaded_img)
-                        result = await prediction.predict(processed_image)
-                        predictions_result.append({ "referenceID": img["referenceID"], "prediction": result })
+                        # processed_image = await preprocess_image(loaded_img)
+                        yolo_process_result = await yolo_process(loaded_img)
+                        # result = await prediction.predict(processed_image)
+                        predictions_result.append({ "referenceID": img["referenceID"], "prediction": yolo_process_result })
                         # print(result)
                     
                     if reference_data["referenceType"] == "message":
                         loaded_img = await read_image_src(img)
-                        processed_image = await preprocess_image(loaded_img)
-                        result = await prediction.predict(processed_image)
-                        predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": result })
+                        # processed_image = await preprocess_image(loaded_img)
+                        yolo_process_result = await yolo_process(loaded_img)
+                        # result = await prediction.predict(processed_image)
+                        predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": yolo_process_result })
                         # print(result)
                 except Exception as e:
                     raise HTTPException(status_code=400, detail=str(e))
