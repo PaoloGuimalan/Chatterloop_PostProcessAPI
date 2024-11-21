@@ -40,7 +40,7 @@ class ContentProcessingService:
                 parsed_results = [
                     {
                         "tag": entity["word"],
-                        "confidence": f"{entity["score"] * 100:.2f}"
+                        "confidence": f"{entity['score'] * 100:.2f}"
                     } for entity in results
                 ]
 
@@ -53,7 +53,7 @@ class ContentProcessingService:
                     for entity in captionToProcess:
                         pendingReferenceTag.append({
                             "tag": entity["word"],
-                            "confidence": f"{entity["score"] * 100:.2f}"
+                            "confidence": f"{entity['score'] * 100:.2f}"
                         } )
 
                     referenceTagFromCaption.append({
@@ -81,7 +81,7 @@ class ContentProcessingService:
                 parsed_results = [
                     {
                         "tag": entity["word"],
-                        "confidence": f"{entity["score"] * 100:.2f}"
+                        "confidence": f"{entity['score'] * 100:.2f}"
                     } for entity in results
                 ]
 
