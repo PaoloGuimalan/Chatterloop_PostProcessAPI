@@ -8,6 +8,7 @@ import requests # type: ignore
 import numpy as np # type: ignore
 import tensorflow as tf # type: ignore
 from tensorflow.keras.applications.imagenet_utils import decode_predictions # type: ignore
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense # type: ignore
 
 class Prediction:
 
@@ -15,8 +16,15 @@ class Prediction:
         self.model = None
 
     async def load_model(self):
-        input_shape = (224, 224, 3)
-        self.model = tf.keras.applications.MobileNetV2(input_shape=input_shape, include_top=True, weights='imagenet')
+        input_shape = (400, 400, 3)
+        # self.model = tf.keras.applications.MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
+
+        base_model = tf.keras.applications.MobileNetV2(input_shape=input_shape, include_top=False, weights='imagenet')
+        
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dense(1000, activation='softmax')(x)
+        self.model = tf.keras.models.Model(inputs=base_model.input, outputs=x)
 
     async def predict(self, image_data: np.ndarray):
         if self.model == None:
@@ -45,10 +53,14 @@ class InputReader:
         return None
     
     async def image_preprocess(image: Image.Image):
-        input_shape = (224, 224)
+        input_shape = (400, 400)
+
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
         image = image.resize(input_shape)
         image = np.asarray(image, dtype=float)
-        image = image / 127.5 - 1.0
+        image = image / 255.0
         image = np.expand_dims(image, 0)
 
         return image
@@ -109,7 +121,7 @@ class ImageProcessingService:
                         predictions_result.append({ "referenceID": reference_data["referenceID"], "prediction": result })
                         # print(result)
                 except Exception as e:
-                    raise HTTPException(status_code=500, detail=str(e))
+                    raise HTTPException(status_code=400, detail=str(e))
 
             # reference_data["predictions"] = predictions_result
 
