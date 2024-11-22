@@ -93,7 +93,8 @@ class ContentProcessingService:
             
             return None
 
-        print(referenceID, referenceType)
+        # print(referenceID, referenceType)
+        return None
 
 content_processing = ContentProcessingService()
 content_processing.load_model()
