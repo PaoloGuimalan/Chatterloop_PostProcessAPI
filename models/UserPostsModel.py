@@ -35,7 +35,7 @@ class IsOnMapSchema(BaseModel):
     status: Optional[bool] = False
     isStationary: Optional[bool] = False
 
-class PostSchema(BaseModel):
+class PostModel(BaseModel):
     postID: Any
     userID: Any
     content: ContentSchema

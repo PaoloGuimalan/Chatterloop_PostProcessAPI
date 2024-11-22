@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from services.v1.image_processing.ImageProcessingService import ImageProcessingService
 from services.v1.image_processing.ImageTagSyncingService import ImageTagSyncingService
 from services.v1.content_processing.ContentProcessingService import content_processing
+from services.v1.content_processing.ContentTagSyncingService import ContentTagSyncingService
 from api.v1.middlewares.jwtchecker import JWTChecker
 
 post_processing_router = APIRouter()
@@ -22,6 +23,6 @@ async def generate_tag(request: Request):
     await ImageTagSyncingService.save_tags_to_mongo(pre_prediction)
 
     processed_content = await content_processing.content_check(referenceID, referenceType)
-    print(processed_content)
+    await ContentTagSyncingService.save_tags_to_mongo(processed_content)
 
     return pre_prediction

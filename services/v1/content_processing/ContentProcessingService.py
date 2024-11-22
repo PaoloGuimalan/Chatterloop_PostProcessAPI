@@ -4,8 +4,9 @@ from transformers import pipeline
 from connections.mongo import MongoConnection
 from schemas.UserPostSchema import UserPosts
 from schemas.UserMessageSchema import UserMessage
-from models.UserPostsModel import PostSchema
+from models.UserPostsModel import PostModel
 from models.UserMessageModel import MessageModel
+from helpers.formatter import DataFormatter
 
 class ContentProcessingService:
 
@@ -21,9 +22,11 @@ class ContentProcessingService:
             self.ner_pipeline = pipeline("ner", model="dbmdz/bert-large-cased-finetuned-conll03-english", grouped_entities=True) #xlm-roberta-large-finetuned-conll03-english, xlm-roberta-base
 
     async def content_check(self, referenceID: str, referenceType: str):
+        remove_and_total_tag_duplicates = DataFormatter.remove_and_total_tag_duplicates
+
         if referenceType == "post":
             db_posts = MongoConnection.execute("posts")
-            post_data: PostSchema = UserPosts(db_posts.find_one({ "postID": referenceID }))
+            post_data: PostModel = UserPosts(db_posts.find_one({ "postID": referenceID }))
             
             if post_data != {}:
                 main_content = post_data["content"]["data"]
@@ -59,13 +62,13 @@ class ContentProcessingService:
                     referenceTagFromCaption.append({
                         "referenceID": reference["referenceID"],
                         "caption": reference["caption"],
-                        "referenceTag": pendingReferenceTag
+                        "referenceTag": remove_and_total_tag_duplicates(pendingReferenceTag)
                     })
                     
                 return {
                     "referenceID": referenceID,
                     "referenceType": referenceType,
-                    "dataTag": parsed_results,
+                    "dataTag": remove_and_total_tag_duplicates(parsed_results),
                     "references": referenceTagFromCaption
                 }
             
@@ -88,7 +91,7 @@ class ContentProcessingService:
                 return {
                     "referenceID": referenceID,
                     "referenceType": referenceType,
-                    "referenceTag": parsed_results
+                    "referenceTag": remove_and_total_tag_duplicates(parsed_results)
                 }
             
             return None
