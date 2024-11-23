@@ -14,3 +14,8 @@
 
 - Generate requirements.txt by (pip freeze > requirements.txt)
 - Install packages using requirements.txt (pip install -r requirements.txt)
+
+# SYSTEM REQUIREMENTS
+
+- Python 3.10.15 (Recommended, for Ubuntu)
+
