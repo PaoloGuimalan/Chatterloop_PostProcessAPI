@@ -17,7 +17,7 @@ class ContentSchema(BaseModel):
     isShared: Optional[bool] = False
     references: Optional[List[ReferenceSchema]] = []
     data: str
-    dataTag: Optional[List[Any]]
+    dataTag: Optional[List[Any]] = []
 
 class TypeSchema(BaseModel):
     fileType: Any

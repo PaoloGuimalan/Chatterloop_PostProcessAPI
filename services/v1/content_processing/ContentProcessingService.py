@@ -100,4 +100,3 @@ class ContentProcessingService:
         return None
 
 content_processing = ContentProcessingService()
-content_processing.load_model()
